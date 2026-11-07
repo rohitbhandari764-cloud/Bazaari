@@ -25,6 +25,15 @@ is stored in Supabase user metadata; Supabase Auth securely hashes and manages
 passwords. If email confirmation is enabled in Supabase, users must confirm
 their address before signing in.
 
+Confirmation links return to the app's current origin by default. For local
+development, keep the Vite server running and add both
+`http://localhost:5173/**` and `http://127.0.0.1:5173/**` under Supabase
+**Authentication → URL Configuration → Redirect URLs**. If you open the email
+on another device, localhost will point to that device instead; deploy the app
+and add its public URL to the redirect allow list. You can set
+`VITE_SUPABASE_AUTH_REDIRECT_URL` in `.env.local` to choose a specific return
+URL. Restart Vite after changing environment variables.
+
 ## Build
 
 ```sh

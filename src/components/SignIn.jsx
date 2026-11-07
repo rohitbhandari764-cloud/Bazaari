@@ -28,6 +28,9 @@ export default function SignIn({ configurationError, sessionError }) {
           email: normalizedEmail,
           password,
           options: {
+            emailRedirectTo:
+              import.meta.env.VITE_SUPABASE_AUTH_REDIRECT_URL ||
+              window.location.origin,
             data: {
               name: name.trim(),
               full_name: name.trim(),

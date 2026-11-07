@@ -14,6 +14,7 @@ export default function App() {
   const [authError, setAuthError] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
+  const [checkoutMessage, setCheckoutMessage] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedGender, setSelectedGender] = useState("all");
   const [catalogProducts, setCatalogProducts] = useState([]);
@@ -105,6 +106,10 @@ export default function App() {
     totals[currency] = (totals[currency] ?? 0) + item.price * item.quantity;
     return totals;
   }, {});
+  const cartSubtotal = cartTotals.INR ?? 0;
+  const gstAmount = Math.round(cartSubtotal * 0.18);
+  const platformFee = cartItems.length > 0 ? 12 : 0;
+  const cartTotal = cartSubtotal + gstAmount + platformFee;
 
   async function handleLogout() {
     if (!supabase) return;
@@ -218,17 +223,43 @@ export default function App() {
                   ))}
                 </ul>
                 <div className="border-t border-[#e9e4dc] pt-4">
-                  <div className="flex justify-between gap-4 font-semibold">
-                    <span>Subtotal</span>
-                    <span className="text-right">
-                      {Object.entries(cartTotals).map(([currency, total]) => (
-                        <span key={currency} className="block">
-                          {formatPrice(total)}
-                        </span>
-                      ))}
-                    </span>
-                  </div>
-                  <p className="mt-1 text-xs text-gray-500">Shipping and taxes calculated at checkout.</p>
+                  <dl className="space-y-2 text-sm">
+                    <div className="flex justify-between gap-4">
+                      <dt>Subtotal</dt>
+                      <dd>{formatPrice(cartSubtotal)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-4 text-gray-600">
+                      <dt>GST (18%)</dt>
+                      <dd>{formatPrice(gstAmount)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-4 text-gray-600">
+                      <dt>Platform fee</dt>
+                      <dd>{formatPrice(platformFee)}</dd>
+                    </div>
+                    <div className="flex justify-between gap-4 border-t border-[#e9e4dc] pt-3 text-base font-semibold">
+                      <dt>Total</dt>
+                      <dd>{formatPrice(cartTotal)}</dd>
+                    </div>
+                  </dl>
+                  {checkoutMessage && (
+                    <p role="status" className="mt-3 rounded-lg bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+                      {checkoutMessage}
+                    </p>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setCheckoutMessage(
+                        "Online payment is not set up yet. Connect a payment provider to complete your purchase.",
+                      )
+                    }
+                    className="mt-4 w-full rounded-full bg-[#17283f] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#263b58]"
+                  >
+                    Pay now · {formatPrice(cartTotal)}
+                  </button>
+                  <p className="mt-2 text-center text-xs text-gray-500">
+                    Payment processing is not configured yet.
+                  </p>
                 </div>
               </>
             )}
