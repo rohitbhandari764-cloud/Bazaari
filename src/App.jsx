@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import Footer from "./components/Footer.jsx";
 import Header from "./components/Header.jsx";
 import MainContent from "./components/MainContent.jsx";
-import { fetchFashionProducts } from "./data/fashionApi.js";
+import { fetchSupabaseProducts } from "./data/supabaseProducts.js";
 import { formatPrice } from "./data/formatPrice.js";
 import { products as fallbackProducts } from "./data/products.js";
 import SignIn from "./components/SignIn.jsx";
@@ -66,7 +66,7 @@ export default function App() {
   useEffect(() => {
     let active = true;
 
-    fetchFashionProducts()
+    fetchSupabaseProducts()
       .then((loadedProducts) => {
         if (active) setCatalogProducts(loadedProducts);
       })

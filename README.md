@@ -13,8 +13,10 @@ to the project's publishable key from Supabase **Project Settings → API Keys**
 The legacy `anon` key is also supported. Never put a `service_role` or secret
 key in a browser app.
 
-The Supabase project URL is already configured for this app. If you use another
-project, set `VITE_SUPABASE_URL` in `.env.local` as well.
+The Supabase project URL is already configured for this app. The storefront
+loads products from the `public.bazzari_products` table. Product image files
+remain hosted by Unsplash; their URLs are stored in the table. If you use
+another project, set `VITE_SUPABASE_URL` in `.env.local` as well.
 
 ```sh
 npm run dev
