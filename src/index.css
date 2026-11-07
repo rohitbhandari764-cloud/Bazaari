@@ -1,0 +1,36 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+}
+
+:root {
+  font-family: "Inter", sans-serif;
+  color: #17283f;
+  background: #f8f6f1;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-optical-sizing: auto;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+::selection {
+  color: #17283f;
+  background: #c5a46d;
+}
