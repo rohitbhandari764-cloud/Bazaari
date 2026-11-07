@@ -6,15 +6,12 @@ import { fetchFashionProducts } from "./data/fashionApi.js";
 import { formatPrice } from "./data/formatPrice.js";
 import { products as fallbackProducts } from "./data/products.js";
 import SignIn from "./components/SignIn.jsx";
+import { supabase, supabaseConfigError } from "./lib/supabase.js";
 
 export default function App() {
-  const [account, setAccount] = useState(() => {
-    try {
-      return JSON.parse(window.localStorage.getItem("bazaari-account") || "null");
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
+  const [authError, setAuthError] = useState("");
   const [cartItems, setCartItems] = useState([]);
   const [cartOpen, setCartOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +19,48 @@ export default function App() {
   const [catalogProducts, setCatalogProducts] = useState([]);
   const [catalogError, setCatalogError] = useState("");
   const [catalogLoading, setCatalogLoading] = useState(true);
+
+  useEffect(() => {
+    if (!supabase) {
+      setAuthReady(true);
+      return undefined;
+    }
+
+    let active = true;
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (active) {
+        setUser(session?.user ?? null);
+        setAuthReady(true);
+        setAuthError("");
+      }
+    });
+
+    supabase.auth
+      .getSession()
+      .then(({ data, error }) => {
+        if (!active) return;
+        if (error) {
+          setAuthError(error.message);
+        } else {
+          setUser(data.session?.user ?? null);
+        }
+        setAuthReady(true);
+      })
+      .catch((error) => {
+        console.error("Unable to restore the Supabase session:", error);
+        if (active) {
+          setAuthError("Could not check your sign-in session. Please reload and try again.");
+          setAuthReady(true);
+        }
+      });
+
+    return () => {
+      active = false;
+      subscription.unsubscribe();
+    };
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -67,19 +106,42 @@ export default function App() {
     return totals;
   }, {});
 
-  function handleSignIn(details) {
-    window.localStorage.setItem("bazaari-account", JSON.stringify(details));
-    setAccount(details);
-  }
-
-  function handleLogout() {
-    window.localStorage.removeItem("bazaari-account");
-    setAccount(null);
+  async function handleLogout() {
+    if (!supabase) return;
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      setAuthError(error.message);
+      return;
+    }
     setCartItems([]);
     setCartOpen(false);
   }
 
-  if (!account) return <SignIn onSignIn={handleSignIn} />;
+  if (!authReady) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-[#f5f2ec] text-sm text-[#17283f]">
+        Checking your sign-in…
+      </main>
+    );
+  }
+
+  if (!user) {
+    return (
+      <SignIn
+        configurationError={supabaseConfigError}
+        sessionError={authError}
+      />
+    );
+  }
+
+  const account = {
+    name:
+      user.user_metadata?.name ||
+      user.user_metadata?.full_name ||
+      user.email?.split("@")[0] ||
+      "Account",
+    email: user.email ?? "",
+  };
 
   return (
     <div className="flex min-h-screen flex-col bg-[#f8f6f1] font-sans text-[#17283f] antialiased">
@@ -101,6 +163,14 @@ export default function App() {
         onSelectGender={setSelectedGender}
       />
       <Footer />
+      {authError && (
+        <p
+          role="alert"
+          className="fixed bottom-4 right-4 z-[70] max-w-sm rounded-xl bg-rose-700 px-4 py-3 text-sm text-white shadow-xl"
+        >
+          {authError}
+        </p>
+      )}
       {cartOpen && (
         <div className="fixed inset-0 z-[60] bg-black/40" onClick={() => setCartOpen(false)}>
           <aside
